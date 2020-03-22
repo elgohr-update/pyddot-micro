@@ -1,0 +1,17 @@
+[Unit]
+Description=Micro API Gateway
+Requires=consul.service
+After=consul.service
+[Service]
+User=root
+Environment=CONSUL_HTTP_TOKEN=ca357799-e5dd-e7ae-35b9-a7fe7bc7cbbd
+ExecStart=/root/gopath/bin/micro --registry=consul --enable_tls=true \
+                                 --tls_cert_file=/etc/pki/CA/certs/3476277_pyddot.com.pem \
+                                 --tls_key_file=/etc/pki/CA/private/3476277_pyddot.com.key \
+                                 api --namespace=com.pyddot.api \
+                                 --handler=web \
+                                 --address=0.0.0.0:443
+Restart=on-failure
+RestartSec=3min
+[Install]
+WantedBy=multi-user.target
