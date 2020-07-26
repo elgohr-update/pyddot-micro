@@ -7,15 +7,53 @@ Etcd is managed through helm
 To start etcd
 
 ```
-helm install stable/etcd-operator --version="0.10.0" --set customResources.createEtcdClusterCRD=true --set etcdCluster.version="3.4.3" --set etcdCluster.image.tag="v3.4.3"
+./install.sh
 ```
 
 To delete etcd
 
 ```
-# list existing deployments
-helm list
+./uninstall.sh
+```
 
-# remove the deployment
-helm delete [name]
+Note: When connecting to etcd, the ca and client certs must be used, e.g:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: default
+  name: micro-registry
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+      - name: registry
+        env:
+        - name: MICRO_REGISTRY
+          value: "etcd"
+        - name: MICRO_REGISTRY_ADDRESS
+          value: "etcd-cluster"
+        - name: MICRO_REGISTRY_TLS_CA
+          value: "/certs/registry/ca.crt"
+        - name: MICRO_REGISTRY_TLS_CERT
+          value: "/certs/registry/cert.pem"
+        - name: MICRO_REGISTRY_TLS_KEY
+          value: "/certs/registry/key.pem"
+        args:
+        - registry
+        image: micro/micro
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+          name: registry-port
+        volumeMounts:
+        - name: etcd-client-certs
+          mountPath: "/certs/registry"
+          readOnly: true
+      volumes:
+      - name: etcd-client-certs
+        secret:
+          secretName: etcd-client-certs
 ```

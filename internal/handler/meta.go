@@ -3,11 +3,12 @@ package handler
 import (
 	"net/http"
 
-	"github.com/micro/go-micro/v2"
 	"github.com/micro/go-micro/v2/api/handler"
 	"github.com/micro/go-micro/v2/api/handler/event"
 	"github.com/micro/go-micro/v2/api/router"
+	"github.com/micro/go-micro/v2/client"
 	"github.com/micro/go-micro/v2/errors"
+	"github.com/micro/micro/v2/service"
 
 	// TODO: only import handler package
 	aapi "github.com/micro/go-micro/v2/api/handler/api"
@@ -17,14 +18,15 @@ import (
 )
 
 type metaHandler struct {
-	s micro.Service
-	r router.Router
+	c  client.Client
+	r  router.Router
+	ns string
 }
 
 func (m *metaHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	service, err := m.r.Route(r)
 	if err != nil {
-		er := errors.InternalServerError(m.r.Options().Namespace, err.Error())
+		er := errors.InternalServerError(m.ns, err.Error())
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(500)
 		w.Write([]byte(er.Error()))
@@ -35,33 +37,34 @@ func (m *metaHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch service.Endpoint.Handler {
 	// web socket handler
 	case aweb.Handler:
-		aweb.WithService(service, handler.WithService(m.s)).ServeHTTP(w, r)
+		aweb.WithService(service, handler.WithClient(m.c)).ServeHTTP(w, r)
 	// proxy handler
 	case "proxy", ahttp.Handler:
-		ahttp.WithService(service, handler.WithService(m.s)).ServeHTTP(w, r)
+		ahttp.WithService(service, handler.WithClient(m.c)).ServeHTTP(w, r)
 	// rpcx handler
 	case arpc.Handler:
-		arpc.WithService(service, handler.WithService(m.s)).ServeHTTP(w, r)
+		arpc.WithService(service, handler.WithClient(m.c)).ServeHTTP(w, r)
 	// event handler
 	case event.Handler:
 		ev := event.NewHandler(
-			handler.WithNamespace(m.r.Options().Namespace),
-			handler.WithService(m.s),
+			handler.WithNamespace(m.ns),
+			handler.WithClient(m.c),
 		)
 		ev.ServeHTTP(w, r)
 	// api handler
 	case aapi.Handler:
-		aapi.WithService(service, handler.WithService(m.s)).ServeHTTP(w, r)
+		aapi.WithService(service, handler.WithClient(m.c)).ServeHTTP(w, r)
 	// default handler: rpc
 	default:
-		arpc.WithService(service, handler.WithService(m.s)).ServeHTTP(w, r)
+		arpc.WithService(service, handler.WithClient(m.c)).ServeHTTP(w, r)
 	}
 }
 
 // Meta is a http.Handler that routes based on endpoint metadata
-func Meta(s micro.Service, r router.Router) http.Handler {
+func Meta(s *service.Service, r router.Router, ns string) http.Handler {
 	return &metaHandler{
-		s: s,
-		r: r,
+		c:  s.Client(),
+		r:  r,
+		ns: ns,
 	}
 }

@@ -14,7 +14,6 @@ func main() {
 	// New Service
 	function := micro.NewFunction(
 		micro.Name("{{.FQDN}}"),
-		micro.Version("latest"),
 	)
 
 	// Initialise function
@@ -41,7 +40,7 @@ import (
 	"{{.Dir}}/handler"
 	"{{.Dir}}/subscriber"
 
-	{{.Alias}} "{{.Dir}}/proto/{{.Alias}}"
+	{{dehyphen .Alias}} "{{.Dir}}/proto/{{.Alias}}"
 )
 
 func main() {
@@ -55,7 +54,7 @@ func main() {
 	service.Init()
 
 	// Register Handler
-	{{.Alias}}.Register{{title .Alias}}Handler(service.Server(), new(handler.{{title .Alias}}))
+	{{dehyphen .Alias}}.Register{{title .Alias}}Handler(service.Server(), new(handler.{{title .Alias}}))
 
 	// Register Struct as Subscriber
 	micro.RegisterSubscriber("{{.FQDN}}", service.Server(), new(subscriber.{{title .Alias}}))
@@ -75,14 +74,13 @@ import (
 	"{{.Dir}}/handler"
 	"{{.Dir}}/client"
 
-	{{.Alias}} "{{.Dir}}/proto/{{.Alias}}"
+	{{dehyphen .Alias}} "{{.Dir}}/proto/{{.Alias}}"
 )
 
 func main() {
 	// New Service
 	service := micro.NewService(
 		micro.Name("{{.FQDN}}"),
-		micro.Version("latest"),
 	)
 
 	// Initialise service
@@ -92,7 +90,7 @@ func main() {
 	)
 
 	// Register Handler
-	{{.Alias}}.Register{{title .Alias}}Handler(service.Server(), new(handler.{{title .Alias}}))
+	{{dehyphen .Alias}}.Register{{title .Alias}}Handler(service.Server(), new(handler.{{title .Alias}}))
 
 	// Run service
 	if err := service.Run(); err != nil {
@@ -113,7 +111,6 @@ func main() {
 	// create new web service
         service := web.NewService(
                 web.Name("{{.FQDN}}"),
-                web.Version("latest"),
         )
 
 	// initialise service
@@ -125,7 +122,7 @@ func main() {
 	service.Handle("/", http.FileServer(http.Dir("html")))
 
 	// register call handler
-	service.HandleFunc("/{{.Alias}}/call", handler.{{title .Alias}}Call)
+	service.HandleFunc("/{{dehyphen .Alias}}/call", handler.{{title .Alias}}Call)
 
 	// run service
         if err := service.Run(); err != nil {

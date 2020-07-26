@@ -16,8 +16,6 @@ import (
 var (
 	// DefaultTick defines how often we poll for updates
 	DefaultTick = 1 * time.Minute
-	// DefaultURL defines url to poll for updates
-	DefaultURL = "https://micro.mu/update"
 )
 
 // Build is service build
@@ -48,7 +46,7 @@ type notifier struct {
 }
 
 // NewScheduler returns new runtime notifier
-func NewScheduler(buildDate string) runtime.Scheduler {
+func NewScheduler(updateURL, buildDate string) runtime.Scheduler {
 	// convert the build date to a time.Time value
 	timestamp, err := strconv.ParseInt(buildDate, 10, 64)
 	if err != nil {
@@ -59,7 +57,7 @@ func NewScheduler(buildDate string) runtime.Scheduler {
 	version := time.Unix(timestamp, 0)
 
 	// return a new notifier
-	return newScheduler(DefaultURL, DefaultTick, version)
+	return newScheduler(updateURL, DefaultTick, version)
 }
 
 // NewHTTP creates HTTP poller and returns it
@@ -74,7 +72,7 @@ func newScheduler(url string, tick time.Duration, version time.Time) *notifier {
 
 // Poll polls for updates and returns results
 func (h *notifier) poll() (*Build, error) {
-	// this should not return error, but lets make sure
+	// this should not return error, but lets make sure.
 	url, err := url.Parse(h.url)
 	if err != nil {
 		return nil, err
@@ -122,6 +120,10 @@ func (h *notifier) run() {
 			resp, err := h.poll()
 			if err != nil {
 				log.Debugf("Scheduler error polling for updates: %v", err)
+				continue
+			}
+			if resp == nil {
+				log.Debug("Poll response is empty")
 				continue
 			}
 			// parse returned response to timestamp

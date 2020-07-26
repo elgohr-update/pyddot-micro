@@ -1,15 +1,22 @@
-# Micro Platform
+# Platform
 
-The micro platform is a serverless platform for microservices development
+This directory serves as platform bootstrapping for Micro.
 
 ## Overview
 
-**M3O** is a serverless platform for microservices development based on the open source Micro Runtime. 
-This directory serves as the location for all related configuration for running the platform. Micro, the company, 
-is providing a hosted offering but anyone should be free to pickup and run this configuration for themselves anywhere.
+The platform provides **Micro as a Service** as a fully managed solution. The platform is 
+bootstrapped onto Kubernetes on any major cloud provider, including load balancing and 
+dns management. This repository serves as the entrypoint and single location for all bootstrapping
+related source code and documentation.
 
-You should be able to pick up and use the configuration here on kubernetes for a self-hosted serverless platform.
+## Contents
 
-## Getting Started
+- [kubernetes](kubernetes) - include the config to deploy to k8s
+- [runbook](runbook) - a directory dedicated to platform operations
 
-For self hosting look at the [kubernetes](https://github.com/micro/micro/tree/master/platform/kubernetes) repo. To learn more about the M3O serverless platform see the [docs](https://micro.mu/docs/platform.html).
+## TODO
+
+- Add config - post deployment bootstrapping config
+- Add command - turn into a `micro env {create, update, delete, list}` command
+- Document the runbook - add a list of commands / docs / expected outcomes
+
