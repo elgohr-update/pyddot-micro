@@ -61,6 +61,8 @@ import (
 	// auth
 	jwtAuth "github.com/micro/go-micro/v2/auth/jwt"
 	svcAuth "github.com/micro/go-micro/v2/auth/service"
+
+	_ "github.com/pyddot/go-plugins/registry/consul/v2"
 )
 
 func init() {
